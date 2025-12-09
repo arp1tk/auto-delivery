@@ -30,10 +30,10 @@ export default function Gallery() {
       image: "/sweets.avif",
       subItems: [
         { id: "1", name: "Premium Diwali Sweets Box", image: "/sweets.avif", price: "₹899" },
-        { id: "2", name: "Traditional Mithai Collection", image: "/sweets.avif", price: "₹1,299" },
-        { id: "3", name: "Gourmet Sweet Hamper", image: "/sweets.avif", price: "₹1,599" },
-        { id: "4", name: "Regional Special Sweets", image: "/sweets.avif", price: "₹999" },
-        { id: "5", name: "Sugar-Free Delights", image: "/sweets.avif", price: "₹1,199" },
+        { id: "2", name: "Traditional Mithai Collection", image: "/trad.webp", price: "₹1,299" },
+        { id: "3", name: "Gourmet Sweet Hamper", image: "/gourmet.webp", price: "₹1,599" },
+        { id: "4", name: "Regional Special Sweets", image: "/regional.jpeg", price: "₹999" },
+        { id: "5", name: "Sugar-Free Delights", image: "/sugar.jpg", price: "₹1,199" },
       ],
     },
     {
@@ -42,10 +42,10 @@ export default function Gallery() {
       image: "/flowers.png",
       subItems: [
         { id: "1", name: "Fresh Rose Bouquet", image: "/flowers.png", price: "₹599" },
-        { id: "2", name: "Mixed Seasonal Flowers", image: "/flowers.png", price: "₹799" },
-        { id: "3", name: "Premium Orchid Arrangement", image: "/flowers.png", price: "₹1,299" },
-        { id: "4", name: "Marigold Garland Set", image: "/flowers.png", price: "₹399" },
-        { id: "5", name: "Luxury Flower Basket", image: "/flowers.png", price: "₹1,499" },
+        { id: "2", name: "Mixed Seasonal Flowers", image: "/mixed.webp", price: "₹799" },
+        { id: "3", name: "Premium Orchid Arrangement", image: "/orchid.webp", price: "₹1,299" },
+        { id: "4", name: "Marigold Garland Set", image: "/marigold.webp", price: "₹399" },
+        { id: "5", name: "Luxury Flower Basket", image: "/luxory.webp", price: "₹1,499" },
       ],
     },
     {
@@ -55,9 +55,9 @@ export default function Gallery() {
       subItems: [
         { id: "1", name: "Premium Festival Hamper", image: "/hampers.png", price: "₹2,499" },
         { id: "2", name: "Luxury Gift Hamper", image: "/hampers.webp", price: "₹3,299" },
-        { id: "3", name: "Corporate Gift Hamper", image: "/hampers.png", price: "₹4,999" },
+        { id: "3", name: "Corporate Gift Hamper", image: "/corporate.webp", price: "₹4,999" },
         { id: "4", name: "Custom Curated Hamper", image: "/hampers.webp", price: "₹1,999" },
-        { id: "5", name: "Deluxe Celebration Box", image: "/hampers.png", price: "₹3,799" },
+        { id: "5", name: "Deluxe Celebration Box", image: "/deluxe.webp", price: "₹3,799" },
       ],
     },
     {
@@ -65,10 +65,10 @@ export default function Gallery() {
       label: "Dry Fruits",
       image: "/hampers.webp",
       subItems: [
-        { id: "1", name: "Premium Almonds & Cashews", image: "/hampers.webp", price: "₹1,299" },
-        { id: "2", name: "Mixed Dry Fruits Box", image: "/hampers.webp", price: "₹1,599" },
-        { id: "3", name: "Luxury Dry Fruits Hamper", image: "/hampers.webp", price: "₹2,299" },
-        { id: "4", name: "Organic Dry Fruits Collection", image: "/hampers.webp", price: "₹1,899" },
+        { id: "1", name: "Premium Almonds & Cashews", image: "/almonds.webp", price: "₹1,299" },
+        { id: "2", name: "Mixed Dry Fruits Box", image: "/mixeddry.webp", price: "₹1,599" },
+        { id: "3", name: "Luxury Dry Fruits Hamper", image: "/luxory-dry.webp", price: "₹2,299" },
+        { id: "4", name: "Organic Dry Fruits Collection", image: "/organic.webp", price: "₹1,899" },
         { id: "5", name: "Gourmet Nuts Selection", image: "/hampers.webp", price: "₹999" },
       ],
     },
@@ -77,11 +77,11 @@ export default function Gallery() {
       label: "Chocolates",
       image: "/sweets.avif",
       subItems: [
-        { id: "1", name: "Belgian Chocolate Box", image: "/sweets.avif", price: "₹899" },
-        { id: "2", name: "Premium Chocolate Collection", image: "/sweets.avif", price: "₹1,499" },
-        { id: "3", name: "Artisan Chocolate Hamper", image: "/sweets.avif", price: "₹1,999" },
-        { id: "4", name: "Gourmet Chocolate Gift Set", image: "/sweets.avif", price: "₹1,299" },
-        { id: "5", name: "Luxury Chocolate Box", image: "/sweets.avif", price: "₹2,299" },
+        { id: "1", name: "Belgian Chocolate Box", image: "/belgian.webp", price: "₹899" },
+        { id: "2", name: "Premium Chocolate Collection", image: "/pc.png", price: "₹1,499" },
+        { id: "3", name: "Artisan Chocolate Hamper", image: "/artisan.png", price: "₹1,999" },
+        { id: "4", name: "Gourmet Chocolate Gift Set", image: "/gc.png", price: "₹1,299" },
+        { id: "5", name: "Luxury Chocolate Box", image: "/pc.png", price: "₹2,299" },
       ],
     },
   ];
