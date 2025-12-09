@@ -63,7 +63,7 @@ export default function Gallery() {
     {
       id: "dry-fruits",
       label: "Dry Fruits",
-      image: "/hampers.webp",
+      image: "/luxory-dry.webp",
       subItems: [
         { id: "1", name: "Premium Almonds & Cashews", image: "/almonds.webp", price: "₹1,299" },
         { id: "2", name: "Mixed Dry Fruits Box", image: "/mixeddry.webp", price: "₹1,599" },
@@ -75,7 +75,7 @@ export default function Gallery() {
     {
       id: "chocolates",
       label: "Chocolates",
-      image: "/sweets.avif",
+      image: "/belgian.webp",
       subItems: [
         { id: "1", name: "Belgian Chocolate Box", image: "/belgian.webp", price: "₹899" },
         { id: "2", name: "Premium Chocolate Collection", image: "/pc.png", price: "₹1,499" },
