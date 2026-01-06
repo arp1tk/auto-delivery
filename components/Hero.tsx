@@ -1,5 +1,6 @@
 // components/Hero.tsx
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -41,6 +42,12 @@ export default function Hero() {
                 </div>
               ))}
             </div>
+            <Link href="/products">
+              <button className="group bg-stone-900 text-white px-8 py-4 uppercase text-xs font-bold tracking-widest hover:bg-stone-800 transition-all flex items-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                Start Gifting
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
           </div>
 
           {/* Image */}
