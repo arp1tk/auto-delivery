@@ -1,5 +1,4 @@
 // app/page.tsx
-
 import Hero from "@/components/Hero";
 import CTA from "@/components/CTA";
 import FeatureBlock from "@/components/FeatureBlock";
@@ -13,7 +12,6 @@ import Footer from "@/components/Footer";
 export default function LandingPage() {
   return (
     <div className="bg-stone-50 text-stone-900">
-
       <Hero />
       <CTA />
 

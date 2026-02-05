@@ -3,158 +3,135 @@
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  ShoppingBag, 
-  Filter, 
-  Search, 
-  ArrowLeft, 
-  Star,
-  ShieldCheck
-} from "lucide-react";
-import Link from "next/link";
+import { ShoppingBag, LayoutGrid } from "lucide-react";
+import Image from "next/image";
 
-// --- FULL PRODUCT DATA (25 Items) ---
-const PRODUCTS = [
+type Product = {
+  id: string;
+  name: string;
+  price: string;
+  category: string;
+  image: string;
+  desc: string;
+  tag?: string | null;
+  festival?: string[];
+};
+
+/* ---------- FESTIVAL COPY ---------- */
+const FESTIVAL_HEADER_COPY: Record<string, string> = {
+  All: "Each item in our collection is handpicked from India's finest artisans and confectioners. Authentic taste, premium presentation, and delivered with care.",
+  Diwali: "Celebrate the festival of lights with handpicked sweets, hampers, and gifts that spread warmth and joy.",
+  Eid: "Share love and blessings this Eid with elegant gifts curated for meaningful celebrations.",
+  Rakhi: "Honor the bond of siblings with thoughtful gifts that express care, love, and gratitude.",
+  Christmas: "Spread festive cheer with warm, joyful gifts curated for Christmas celebrations.",
+};
+
+//----FULL PRODUCT DATA (25 Items)
+const PRODUCTS: Product[] = [
   // --- SWEETS ---
   {
     id: "s1",
-    name: "Premium Diwali Sweets Box",
+    name: "Grand Indian Mithai Thali",
     price: "₹899",
     category: "Sweets",
-    image: "/sweets.avif",
-    desc: "A signature collection of Kaju Katli and Milk Cake, garnished with silver vark.",
-    tag: "Bestseller"
+    festival: ["Diwali"],
+    image: "/sweet1.png",
+    desc: "A lavish assortment of traditional Indian sweets and snacks, beautifully arranged to celebrate togetherness. Perfect for gifting families during joyous festivals.",
+    tag: "Festive Classic"
   },
   {
     id: "s2",
-    name: "Traditional Mithai Collection",
+    name: "Royal Ghewar Platter",
     price: "₹1,299",
     category: "Sweets",
-    image: "/trad.webp",
-    desc: "Authentic Ghee-based sweets including Motichoor Ladoo and Besan Burfi.",
+    festival: ["Rakhi"],
+    image: "/sweet2.png",
+    desc: "A rich and crispy ghewar, delicately soaked in syrup and adorned with silver vark and nuts — a royal dessert rooted in Indian tradition.",
     tag: "Traditional"
   },
   {
     id: "s3",
-    name: "Gourmet Sweet Hamper",
+    name: "Cookie Delight Box",
     price: "₹1,599",
     category: "Sweets",
-    image: "/gourmet.webp",
-    desc: "Fusion sweets combining traditional recipes with modern flavors like Rose and Pistachio.",
-    tag: "Premium"
+    festival: ["Christmas"],
+    image: "/sweet3.png",
+    desc: "A refined selection of buttery cookies and dry-fruit sweets, lightly dusted and delicately flavored for those who love subtle indulgence.",
+    tag: "Premium Treats"
   },
   {
     id: "s4",
-    name: "Regional Special Sweets",
+    name: "Eid Special Sweet Platter",
     price: "₹999",
     category: "Sweets",
-    image: "/regional.jpeg",
-    desc: "Handpicked regional specialties bringing the authentic taste of home.",
-    tag: null
+    festival: ["Eid"],
+    image: "/sweet4.png",
+    desc: "A thoughtfully curated selection of traditional Eid sweets, delicately prepared for sharing blessings and sweetness with loved ones.",
+    tag: "Eid Exclusive"
   },
   {
     id: "s5",
-    name: "Sugar-Free Delights",
+    name: "Luxury Celebration Sweet Crate",
     price: "₹1,199",
     category: "Sweets",
-    image: "/sugar.jpg",
-    desc: "Naturally sweetened Date and Fig rolls for a guilt-free celebration.",
-    tag: "Healthy"
+    festival: ["Diwali", "Eid"],
+    image: "/sweet5.png",
+    desc: "An opulent wooden crate filled with assorted laddoos, barfis, and festive sweets — perfect for marking life’s biggest celebrations.",
+    tag: "Grand Celebration"
   },
 
   // --- FLOWERS ---
   {
     id: "f1",
-    name: "Fresh Rose Bouquet",
+    name: "Crimson Festive Rose Bouquet",
     price: "₹599",
     category: "Flowers",
-    image: "/flowers.png",
-    desc: "A classic bunch of 12 long-stemmed red roses, fresh from the farm.",
-    tag: "Fresh"
+    festival: ["Christmas"],
+    image: "/flower1.png",
+    desc: "A rich bouquet of red roses accented with festive greens and berries, wrapped in rustic tones — perfect for warm celebrations and heartfelt gifting.",
+    tag: "Festive Elegance"
   },
   {
     id: "f2",
-    name: "Mixed Seasonal Flowers",
+    name: "Baby’s Breath Bliss Bouquet",
     price: "₹799",
     category: "Flowers",
-    image: "/mixed.webp",
-    desc: "Vibrant seasonal blooms arranged beautifully in a hand-tied bunch.",
-    tag: null
+    festival: ["Eid"],
+    image: "/flower2.png",
+    desc: "A delicate bouquet of soft white baby’s breath, symbolising purity and peace — ideal for serene celebrations and meaningful moments.",
+    tag: "Pure & Graceful"
   },
   {
     id: "f3",
-    name: "Premium Orchid Arrangement",
+    name: "Elegant Orchid Arrangement",
     price: "₹1,299",
     category: "Flowers",
-    image: "/orchid.webp",
+    festival: ["Diwali"],
+    image: "/flower3.png",
     desc: "Exotic purple orchids arranged in a minimalist glass vase.",
     tag: "Luxury"
   },
   {
     id: "f4",
-    name: "Marigold Garland Set",
+    name: "Sunflower Joy Bouquet",
     price: "₹399",
     category: "Flowers",
-    image: "/marigold.webp",
-    desc: "Traditional orange and yellow marigold garlands for festive pooja.",
-    tag: "Festive"
+    festival: ["Rakhi"],
+    image: "/flower4.png",
+    desc: "A cheerful bouquet of radiant sunflowers paired with soft fillers — a perfect gift to spread happiness and positive energy.",
+    tag: "Bright & Cheerful"
   },
   {
     id: "f5",
     name: "Luxury Flower Basket",
     price: "₹1,499",
     category: "Flowers",
-    image: "/luxory.webp",
-    desc: "A grand basket featuring lilies, carnations, and roses.",
-    tag: "Grand"
+    festival: ["Diwali", "Christmas", "Eid"],
+    image: "/flower5.png",
+    desc: "A graceful basket of white roses and fresh greens, thoughtfully arranged to convey elegance, peace, and heartfelt emotions.",
+    tag: "Serene Luxury"
   },
 
-  // --- HAMPERS ---
-  {
-    id: "h1",
-    name: "Premium Festival Hamper",
-    price: "₹2,499",
-    category: "Hampers",
-    image: "/hampers.png",
-    desc: "The complete festive package: Sweets, Diyas, and Dry Fruits.",
-    tag: "All-in-One"
-  },
-  {
-    id: "h2",
-    name: "Luxury Gift Hamper",
-    price: "₹3,299",
-    category: "Hampers",
-    image: "/hampers.webp",
-    desc: "Curated with gourmet chocolates, premium nuts, and a scented candle.",
-    tag: "Luxury"
-  },
-  {
-    id: "h3",
-    name: "Corporate Gift Hamper",
-    price: "₹4,999",
-    category: "Hampers",
-    image: "/corporate.webp",
-    desc: "Professional and elegant packaging suitable for business partners.",
-    tag: "Corporate"
-  },
-  {
-    id: "h4",
-    name: "Custom Curated Hamper",
-    price: "₹1,999",
-    category: "Hampers",
-    image: "/hampers.webp",
-    desc: "A balanced mix of snacks and sweets, perfect for family sharing.",
-    tag: null
-  },
-  {
-    id: "h5",
-    name: "Deluxe Celebration Box",
-    price: "₹3,799",
-    category: "Hampers",
-    image: "/deluxe.webp",
-    desc: "Our largest hamper featuring an assortment of our finest products.",
-    tag: "Exclusive"
-  },
 
   // --- DRY FRUITS ---
   {
@@ -162,7 +139,8 @@ const PRODUCTS = [
     name: "Premium Almonds & Cashews",
     price: "₹1,299",
     category: "Dry Fruits",
-    image: "/almonds.webp",
+    festival: ["Diwali", "Rakhi"],
+    image: "/dryfruits1.png",
     desc: "Jumbo California Almonds and Mangalorean Cashews in a gift box.",
     tag: "Healthy"
   },
@@ -171,7 +149,8 @@ const PRODUCTS = [
     name: "Mixed Dry Fruits Box",
     price: "₹1,599",
     category: "Dry Fruits",
-    image: "/mixeddry.webp",
+    festival: ["Rakhi"],
+    image: "/dryfruits2.png",
     desc: "A four-partition box containing Almonds, Cashews, Raisins, and Pistachios.",
     tag: null
   },
@@ -180,7 +159,8 @@ const PRODUCTS = [
     name: "Luxury Dry Fruits Hamper",
     price: "₹2,299",
     category: "Dry Fruits",
-    image: "/luxory-dry.webp",
+    festival: ["Diwali", "Eid", "Rakhi"],
+    image: "/dryfruits3.png",
     desc: "Exotic dry fruits including Apricots, Figs, and Pecans.",
     tag: "Premium"
   },
@@ -189,7 +169,8 @@ const PRODUCTS = [
     name: "Organic Dry Fruits Collection",
     price: "₹1,899",
     category: "Dry Fruits",
-    image: "/organic.webp",
+    festival: ["Eid"],
+    image: "/dryfruits4.png",
     desc: "Certified organic nuts sourced directly from sustainable farms.",
     tag: "Organic"
   },
@@ -198,7 +179,8 @@ const PRODUCTS = [
     name: "Gourmet Nuts Selection",
     price: "₹999",
     category: "Dry Fruits",
-    image: "/hampers.webp",
+    festival: ["Christmas"],
+    image: "/dryfruits5.png",
     desc: "Roasted and salted nuts for a savory snacking experience.",
     tag: "Snack"
   },
@@ -209,7 +191,8 @@ const PRODUCTS = [
     name: "Belgian Chocolate Box",
     price: "₹899",
     category: "Chocolates",
-    image: "/belgian.webp",
+    festival: ["Rakhi", "Christmas"],
+    image: "/choco1.png",
     desc: "Rich and creamy Belgian milk chocolates in a signature box.",
     tag: "Imported"
   },
@@ -218,7 +201,8 @@ const PRODUCTS = [
     name: "Premium Chocolate Collection",
     price: "₹1,499",
     category: "Chocolates",
-    image: "/pc.png",
+    festival: ["Diwali"],
+    image: "/choco2.png",
     desc: "An assortment of dark, milk, and white chocolates.",
     tag: null
   },
@@ -227,7 +211,8 @@ const PRODUCTS = [
     name: "Artisan Chocolate Hamper",
     price: "₹1,999",
     category: "Chocolates",
-    image: "/artisan.png",
+    festival: ["Eid"],
+    image: "/choco3.png",
     desc: "Handcrafted chocolates with unique fillings like Paan and Chilli.",
     tag: "Artisan"
   },
@@ -236,7 +221,8 @@ const PRODUCTS = [
     name: "Gourmet Chocolate Gift Set",
     price: "₹1,299",
     category: "Chocolates",
-    image: "/gc.png",
+    festival: ["Christmas", "Rakhi"],
+    image: "/choco4.png",
     desc: "Gourmet bars tailored for the true chocolate connoisseur.",
     tag: "Gourmet"
   },
@@ -245,23 +231,93 @@ const PRODUCTS = [
     name: "Luxury Chocolate Box",
     price: "₹2,299",
     category: "Chocolates",
-    image: "/pc.png",
+    festival: ["Christmas", "Diwali", "Rakhi", "Eid"],
+    image: "/choco5.png",
     desc: "Gold-dusted truffles in a velvet-finish box.",
     tag: "Luxury"
   },
+
+  // --- HAMPERS ---
+  {
+    id: "h1",
+    name: "Premium Festival Hamper",
+    price: "₹2,499",
+    category: "Hampers",
+    festival: ["Diwali", "Rakhi"],
+    image: "/hamper1.png",
+    desc: "The complete festive package: Sweets, Diyas, and Dry Fruits.",
+    tag: "All-in-One"
+  },
+  {
+    id: "h2",
+    name: "Luxury Gift Hamper",
+    price: "₹3,299",
+    category: "Hampers",
+    festival: ["Diwali", "Christmas", "Rakhi"],
+    image: "/hamper2.png",
+    desc: "Curated with gourmet chocolates, premium nuts, and a scented candle.",
+    tag: "Luxury"
+  },
+  {
+    id: "h3",
+    name: "Corporate Gift Hamper",
+    price: "₹4,999",
+    category: "Hampers",
+    festival: ["Christmas"],
+    image: "/hamper3.png",
+    desc: "Professional and elegant packaging suitable for business partners.",
+    tag: "Corporate"
+  },
+  {
+    id: "h4",
+    name: "Custom Curated Hamper",
+    price: "₹1,999",
+    category: "Hampers",
+    festival: ["Eid"],
+    image: "/hamper4.png",
+    desc: "A balanced mix of snacks and sweets, perfect for family sharing.",
+    tag: null
+  },
+  {
+    id: "h5",
+    name: "Deluxe Celebration Box",
+    price: "₹3,799",
+    category: "Hampers",
+    festival: ["Diwali", "Christmas"],
+    image: "/hamper5.png",
+    desc: "Our largest hamper featuring an assortment of our finest products.",
+    tag: "Exclusive"
+  },
 ];
 
-const CATEGORIES = ["All", "Hampers", "Sweets", "Flowers", "Dry Fruits", "Chocolates"];
+const CATEGORIES = [
+  { id: "All", label: "All", icon: LayoutGrid },
+  { id: "Sweets", label: "Sweets", icon: "/icons/sweetsicon.png" },
+  { id: "Flowers", label: "Flowers", icon: "/icons/flowericon.png" },
+  { id: "Dry Fruits", label: "Dry Fruits", icon: "/icons/dryfruiticon.png" },
+  { id: "Chocolates", label: "Chocolates", icon: "/icons/chocolateicon.png" },
+  { id: "Hampers", label: "Hampers", icon: "/icons/hampericon.png" },
+];
+
+const FESTIVALS = ["All", "Diwali", "Eid", "Rakhi", "Christmas"];
 
 export default function ProductsPage() {
   const { addToCart, setIsOpen } = useCart();
+  const [activeFestival, setActiveFestival] = useState("All"); // Default
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const filteredProducts = activeCategory === "All" 
-    ? PRODUCTS 
-    : PRODUCTS.filter(p => p.category === activeCategory);
+  const filteredProducts = PRODUCTS.filter((p) => {
+    const categoryMatch =
+      activeCategory === "All" || p.category === activeCategory;
 
-  const handleAddToCart = (product: any) => {
+    const festivalMatch =
+      activeFestival === "All" ||
+      (Array.isArray(p.festival) && p.festival.includes(activeFestival));
+
+    return categoryMatch && festivalMatch;
+  });
+
+  const handleAddToCart = (product: Product) => {
     addToCart({
       id: product.id,
       name: product.name,
@@ -269,159 +325,164 @@ export default function ProductsPage() {
       image: product.image,
       category: product.category,
     });
-    setIsOpen(true); // Open the drawer
+    setIsOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 font-sans selection:bg-amber-200">
-      
-      {/* --- HEADER --- */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 hover:bg-stone-100 rounded-full transition-colors">
-              <ArrowLeft className="w-5 h-5 text-stone-600" />
-            </Link>
-            <span className="font-serif text-2xl font-bold tracking-widest text-stone-900 uppercase">
-              Tyohar<span className="text-amber-700">.</span>
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center bg-stone-100 px-4 py-2 rounded-full">
-              <Search className="w-4 h-4 text-stone-400 mr-2" />
-              <input 
-                type="text" 
-                placeholder="Search gifts..." 
-                className="bg-transparent border-none outline-none text-sm text-stone-900 placeholder-stone-400 w-32 focus:w-48 transition-all"
-              />
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#FDFBF7] font-sans text-stone-800 selection:bg-amber-200">
+      {/* HEADER */}
+      <header className="sticky top-0 z-40 bg-[#FDFBF7]/80 backdrop-blur-md border-b border-stone-200/50">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center gap-4">
+          <button className="p-2 hover:bg-stone-100 rounded-full transition-colors">
+            {/* <LayoutGrid className="w-5 h-5 text-stone-600" /> */}
+          </button>
+          <span className="font-serif text-2xl font-bold tracking-widest uppercase text-[#7D4047]">
+            Tyohar<span className="text-[#7D4047]">.</span>
+          </span>
         </div>
       </header>
 
-      {/* --- HERO BANNER --- */}
-      <div className="bg-stone-900 text-stone-300 py-16 px-6 relative overflow-hidden">
-        {/* Background Texture/Gradient for depth */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-900/10 blur-[100px] rounded-full pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <p className="text-amber-500 text-xs font-bold uppercase tracking-[0.2em] mb-4">The Collection</p>
-          <h1 className="font-serif text-4xl md:text-5xl text-white mb-6">Curated Emotions</h1>
-          <p className="max-w-2xl mx-auto text-lg font-light leading-relaxed text-stone-400">
-            Each item in our collection is handpicked from India's finest artisans and confectioners. 
-            Authentic taste, premium presentation, and delivered with care.
-          </p>
-        </div>
+      {/* HERO */}
+      <div className="pt-16 pb-8 px-6 text-center bg-[#2E2E2E]">
+        <p className="text-[#a54a55] text-xs font-bold uppercase tracking-[0.2em] mb-4">
+          The Collection</p>
+        <h1 className="font-serif text-4xl md:text-5xl text-[#F1ECE6] mb-6">
+          Curated Emotions</h1>
+
+        <motion.p
+          key={activeFestival}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-xl mx-auto text-lg text-[#F1ECE6] font-light">
+          {FESTIVAL_HEADER_COPY[activeFestival]}
+        </motion.p>
       </div>
 
-      {/* --- FILTER BAR --- */}
-      <div className="sticky top-20 z-30 bg-stone-50 border-b border-stone-200 py-4 px-6 overflow-x-auto no-scrollbar">
-        <div className="max-w-7xl mx-auto flex items-center gap-4 min-w-max">
-          <Filter className="w-4 h-4 text-stone-400 mr-2" />
-          {CATEGORIES.map((cat) => (
+      {/* FESTIVAL TABS */}
+      <div className="bg-stone-50 py-8 px-6 text-center">
+        <p className="text-xs uppercase tracking-widest text-[#7D4047] mb-4">
+          Browse by Festival
+        </p>
+        <div className="flex justify-center gap-3 flex-wrap">
+          {FESTIVALS.map((fest) => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                activeCategory === cat 
-                  ? "bg-amber-700 text-white shadow-md" 
-                  : "bg-white text-stone-500 border border-stone-200 hover:border-stone-400"
-              }`}
-            >
-              {cat}
+              key={fest}
+              onClick={() => {
+                setActiveFestival(fest);
+                setActiveCategory("All");
+              }}
+              className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest ${activeFestival === fest
+                  ? "bg-[#363434] text-[#F1ECE6]"
+                  : "bg-white border text-stone-500"
+                }`}>
+              {fest}
             </button>
           ))}
         </div>
       </div>
 
-      {/* --- PRODUCT GRID --- */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <motion.div 
-          layout 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-        >
+      {/* 2) CATEGORY ICON BAR */}
+      <div className="sticky top-20 z-30 bg-stone-50 py-4 px-6">
+        <div className="flex justify-center gap-6 flex-wrap">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className="flex flex-col items-center gap-1 text-[11px] font-semibold uppercase transition-all">
+              {typeof cat.icon !== "string" ? (
+                <cat.icon
+                  className={`w-6 h-6 transition-all translate-y-3 ${activeCategory === cat.id
+                      ? "text-[#a54a55] scale-110"
+                      : "text-stone-400"
+                    }`}/>
+              ) : (
+                <Image
+                  src={cat.icon}
+                  alt={cat.label}
+                  width={40}
+                  height={40}
+                  className={`transition-all ${activeCategory === cat.id
+                      ? "scale-110 opacity-100"
+                      : "opacity-70"
+                    }`}
+                />
+              )}
+              <span
+                className={`${activeCategory === cat.id
+                    ? "text-[#a54a55]"
+                    : "text-stone-500"
+                  } ${cat.id === "All" ? "mt-4" : ""}`}>
+                {cat.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* 3) PRODUCTS SHOWCASE */}
+      <main className="max-w-7xl mx-auto px-6 pb-20">
+        <motion.div
+          layout
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
           <AnimatePresence mode="popLayout">
             {filteredProducts.map((product) => (
               <motion.div
-                layout
                 key={product.id}
-                initial={{ opacity: 0, scale: 0.9 }}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="group bg-white rounded-xl overflow-hidden border border-stone-100 hover:shadow-xl hover:border-stone-200 transition-all duration-500 flex flex-col"
-              >
-                {/* Image Container */}
-                <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  
-                  {/* Badges */}
-                  {product.tag && (
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-stone-900 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-sm shadow-sm z-10">
-                      {product.tag}
-                    </div>
-                  )}
+                className="group flex flex-col items-center text-center">
+                {/* Image with rounded background */}
+                <div className="relative w-full aspect-square mb-6 flex items-center justify-center">
+                  <div className="absolute w-64 h-64 rounded-full bg-[#EFEFE9] z-0 
+                group-hover:scale-105 transition-transform duration-500 ease-out" />
+                  <Image src={product.image}
+                    alt={product.name}
+                    height={400}
+                    width={400}
+                    className="relative z-10 w-3/4 h-3/4 object-contain drop-shadow-lg group-hover:-translate-y-2 transition-transform duration-500 ease-out" />
 
-                  {/* Quick Add Overlay (Desktop) */}
-                  <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden lg:block z-20">
-                    <button 
-                      onClick={() => handleAddToCart(product)}
-                      className="w-full bg-stone-900 text-white py-3 uppercase text-xs font-bold tracking-widest hover:bg-amber-700 transition-colors shadow-lg"
-                    >
-                      Add to Gift Box
-                    </button>
-                  </div>
+                  {/* Floating Action Button*/}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}
+                    className="absolute bottom-6 right-6 z-20 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-[#7D4047] hover:text-[#94545b] transition-colors opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
+                    title="Add to Cart">
+                    <ShoppingBag className="w-5 h-5" />
+                  </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] text-stone-400 uppercase tracking-widest">{product.category}</p>
-                    <div className="flex gap-0.5">
-                       {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />)}
-                    </div>
-                  </div>
-                  
-                  <h3 className="font-serif text-lg text-stone-900 mb-2 leading-tight group-hover:text-amber-700 transition-colors">
+                {/* Info */}
+                <div className="space-y-1">
+                  {product.tag && (
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#7D4047] bg-amber-50 px-2 py-1 rounded-sm">
+                      {product.tag}
+                    </span>
+                  )}
+                  <h3 className="font-serif text-xl text-[#2E2E2E] group-hover:text-[#7D4047] transition-colors">
                     {product.name}
                   </h3>
-                  
-                  <p className="text-sm text-stone-500 line-clamp-2 mb-4 flex-grow leading-relaxed">
+                  <p className="text-sm text-[#2E2E2E] font-light max-w-[200px] mx-auto line-clamp-2">
                     {product.desc}
                   </p>
-                  
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-stone-100">
-                    <span className="font-serif text-xl text-stone-900">{product.price}</span>
-                    
-                    {/* Mobile Add Button */}
-                    <button 
-                      onClick={() => handleAddToCart(product)}
-                      className="lg:hidden p-2 bg-stone-100 rounded-full text-stone-900 hover:bg-amber-100 hover:text-amber-700 transition-colors"
-                    >
-                      <ShoppingBag className="w-5 h-5" />
-                    </button>
-                  </div>
+                  <p className="font-medium text-stone-900 mt-2">
+                    {product.price}
+                  </p>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
 
-        {/* --- LOAD MORE / END --- */}
-        <div className="mt-20 text-center">
-          <p className="text-stone-400 text-sm mb-6 italic">Showing all curated items for this season.</p>
-          <div className="inline-flex items-center gap-2 text-stone-500 border border-stone-200 px-6 py-3 rounded-full bg-white">
-            <ShieldCheck className="w-4 h-4 text-green-600" />
-            <span className="text-xs uppercase tracking-widest">Verified Authentic Vendors</span>
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-20 opacity-50">
+            <p className="font-serif text-xl italic text-stone-400">No products found in this category.</p>
           </div>
-        </div>
+        )}
       </main>
-
     </div>
   );
 }
+
+
+
