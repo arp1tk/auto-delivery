@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { ShoppingBag, LayoutGrid } from "lucide-react";
 import { PRODUCTS, type Product } from "@/app/data/products";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 
 /* ---------- FESTIVAL COPY ---------- */
 const FESTIVAL_HEADER_COPY: Record<string, string> = {
@@ -29,6 +30,7 @@ const CATEGORIES = [
 const FESTIVALS = ["All", "Diwali", "Eid", "Rakhi", "Christmas"];
 
 export default function ProductsPage() {
+  const router = useRouter();
   const { addToCart, setIsOpen } = useCart();
   const [activeFestival, setActiveFestival] = useState("All"); // Default
   const [activeCategory, setActiveCategory] = useState("All");
@@ -152,14 +154,10 @@ export default function ProductsPage() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
           <AnimatePresence mode="popLayout">
             {filteredProducts.map((product) => (
-              <Link
-    key={product.id}
-    href={`/products/${product.slug}`}
-    className="block"
-  >
               <motion.div
                 key={product.id}
                 layout
+                onClick={() => router.push(`/products/${product.slug}`)}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -202,11 +200,10 @@ export default function ProductsPage() {
                   </p>
                 </div>
               </motion.div>
-              </Link>
+            
             ))}
           </AnimatePresence>
         </motion.div>
-
         {filteredProducts.length === 0 && (
           <div className="text-center py-20 opacity-50">
             <p className="font-serif text-xl italic text-stone-400">No products found in this category.</p>

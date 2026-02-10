@@ -2,14 +2,13 @@ import { PRODUCTS } from "@/app/data/products";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-export default function ProductPage({
+export default async function ProductPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const product = PRODUCTS.find(
-    (item) => item.slug === params.slug
-  );
+  const { slug } = await params;
+  const product = PRODUCTS.find((p) => p.slug === slug);
 
   if (!product) {
     return notFound();
@@ -19,7 +18,6 @@ export default function ProductPage({
     <div className="min-h-screen bg-[#FDFBF7] px-6 py-16">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16">
 
-        {/* LEFT - IMAGE */}
         <div className="relative w-full aspect-square">
           <Image
             src={product.image}
@@ -28,8 +26,6 @@ export default function ProductPage({
             className="object-contain"
           />
         </div>
-
-        {/* RIGHT - DETAILS */}
         <div className="space-y-6">
 
           {product.tag && (
@@ -42,7 +38,7 @@ export default function ProductPage({
             {product.name}
           </h1>
 
-          <p className="text-2xl font-medium">
+          <p className="text-2xl font-medium text-[#2E2E2E]">
             {product.price}
           </p>
 
