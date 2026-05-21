@@ -1,10 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getCartTotal, type OrderDraft, type OrderRecord } from "@/lib/orders";
 
-const ordersDirectory = path.join(process.cwd(), ".data");
+const ordersDirectory = path.join(os.tmpdir(), "tyohar-demo");
 const ordersFile = path.join(ordersDirectory, "orders.json");
 
 function isNodeFileError(error: unknown): error is NodeJS.ErrnoException {
