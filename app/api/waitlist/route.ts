@@ -1,14 +1,15 @@
 import { randomUUID } from "crypto";
 import { appendFile, mkdir } from "fs/promises";
+import os from "os";
 import path from "path";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const WAITLIST_DIR = path.join(process.cwd(), "data");
+const WAITLIST_DIR = path.join(os.tmpdir(), "tyohar-demo");
 const WAITLIST_FILE = path.join(WAITLIST_DIR, "waitlist-submissions.jsonl");
 const WAITLIST_STORAGE_LABEL = path.posix.join(
-  "data",
+  "runtime-temp",
   "waitlist-submissions.jsonl",
 );
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
