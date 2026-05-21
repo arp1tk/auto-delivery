@@ -14,6 +14,7 @@ export interface CartItem {
 interface CartContextType {
   items: CartItem[];
   addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  clearCart: () => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   isOpen: boolean;
@@ -46,6 +47,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const clearCart = () => {
+    setItems([]);
+    setIsOpen(false);
+  };
+
   const updateQuantity = (id: string, delta: number) => {
     setItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -69,6 +75,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider value={{ 
       items, 
       addToCart, 
+      clearCart,
       removeFromCart, 
       updateQuantity, 
       isOpen, 

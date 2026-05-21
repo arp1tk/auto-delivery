@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { 
   Calendar as CalendarIcon, 
   User, 
@@ -13,15 +15,25 @@ import {
   Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { formatINR, parsePrice } from "@/lib/orders";
+
+function getDefaultDeliveryDate() {
+  const deliveryDate = new Date();
+  deliveryDate.setDate(deliveryDate.getDate() + 7);
+  return deliveryDate.toISOString().slice(0, 10);
+}
 
 export default function CheckoutPage() {
-  const { items, total } = useCart();
+  const router = useRouter();
+  const { clearCart, items, total } = useCart();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
     occasion: "Diwali",
-    date: "",
+    date: getDefaultDeliveryDate(),
     recipientName: "",
     recipientPhone: "",
     address: "",
@@ -32,6 +44,48 @@ export default function CheckoutPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitError("");
+
+    if (items.length === 0) {
+      setSubmitError("Add at least one gift before placing a demo order.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/orders", {
+        body: JSON.stringify({
+          delivery: formData,
+          isAnnual,
+          items,
+          total,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const responseBody = await response.text();
+        throw new Error(`Order creation failed with ${response.status}: ${responseBody}`);
+      }
+
+      const payload = (await response.json()) as { orderId: string };
+      clearCart();
+      router.push(`/confirmation?orderId=${encodeURIComponent(payload.orderId)}`);
+    } catch (error) {
+      console.error("Checkout submission failed.", { error, formData, itemCount: items.length, total });
+      const message = error instanceof Error ? error.message : "Unknown checkout submission failure.";
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -51,7 +105,7 @@ export default function CheckoutPage() {
       </header>
 
       <main className="max-w-7xl mx-auto py-12 px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
           
           {/* LEFT COLUMN: The Concierge Form */}
           <div className="lg:col-span-7 space-y-12">
@@ -71,6 +125,7 @@ export default function CheckoutPage() {
                       <select 
                         name="occasion" 
                         className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md appearance-none focus:outline-none focus:border-amber-700 transition-colors cursor-pointer text-stone-700"
+                        required
                         value={formData.occasion}
                         onChange={handleInputChange}
                       >
@@ -92,6 +147,8 @@ export default function CheckoutPage() {
                         type="date" 
                         name="date"
                         className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 transition-colors text-stone-700 placeholder:text-stone-400"
+                        required
+                        value={formData.date}
                         onChange={handleInputChange}
                       />
                       <CalendarIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
@@ -121,7 +178,7 @@ export default function CheckoutPage() {
                       <div className="flex items-center gap-2 mb-2">
                         <Repeat className={`w-4 h-4 ${isAnnual ? 'text-amber-700' : 'text-stone-400'}`} />
                         <h3 className={`font-serif text-lg ${isAnnual ? 'text-amber-900' : 'text-stone-600'}`}>
-                          Enable "Set & Forget"
+                          Enable Set & Forget
                         </h3>
                         {isAnnual && <span className="bg-amber-200 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">Active</span>}
                       </div>
@@ -179,6 +236,8 @@ export default function CheckoutPage() {
                         name="recipientName"
                         placeholder="e.g. Anjali Sharma"
                         className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 text-stone-700 placeholder:text-stone-400"
+                        required
+                        value={formData.recipientName}
                         onChange={handleInputChange}
                       />
                       <User className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
@@ -191,6 +250,8 @@ export default function CheckoutPage() {
                       name="recipientPhone"
                       placeholder="98765 43210"
                       className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 text-stone-700 placeholder:text-stone-400"
+                      required
+                      value={formData.recipientPhone}
                       onChange={handleInputChange}
                     />
                     <p className="text-[10px] text-stone-400 mt-1">Required for delivery coordination via WhatsApp.</p>
@@ -204,6 +265,8 @@ export default function CheckoutPage() {
                     placeholder="Flat No, Building, Street Area..."
                     rows={3}
                     className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 resize-none text-stone-700 placeholder:text-stone-400"
+                    required
+                    value={formData.address}
                     onChange={handleInputChange}
                   ></textarea>
                 </div>
@@ -216,6 +279,8 @@ export default function CheckoutPage() {
                       name="city"
                       placeholder="e.g. Mumbai" 
                       className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 text-stone-700 placeholder:text-stone-400" 
+                      required
+                      value={formData.city}
                       onChange={handleInputChange}
                     />
                    </div>
@@ -226,6 +291,9 @@ export default function CheckoutPage() {
                       name="pincode"
                       placeholder="400050" 
                       className="w-full p-4 bg-stone-50 border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 text-stone-700 placeholder:text-stone-400" 
+                      inputMode="numeric"
+                      required
+                      value={formData.pincode}
                       onChange={handleInputChange}
                     />
                    </div>
@@ -247,6 +315,7 @@ export default function CheckoutPage() {
                     placeholder="Write a heartfelt note..."
                     rows={4}
                     className="w-full p-6 bg-[#FAF9F6] border border-stone-200 rounded-md focus:outline-none focus:border-amber-700 font-serif text-lg italic text-stone-700 placeholder:text-stone-400/70"
+                    value={formData.message}
                     onChange={handleInputChange}
                   ></textarea>
                   <p className="text-right text-xs text-stone-400">Printed on premium cardstock</p>
@@ -273,13 +342,13 @@ export default function CheckoutPage() {
                     items.map((item) => (
                       <div key={item.id} className="flex gap-4">
                         <div className="w-16 h-16 bg-stone-100 rounded-md overflow-hidden shrink-0">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          <Image src={item.image} alt={item.name} width={64} height={64} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1">
                           <h4 className="font-serif text-stone-900 text-sm">{item.name}</h4>
                           <p className="text-xs text-stone-500 mt-1">Qty: {item.quantity}</p>
                         </div>
-                        <p className="font-bold text-sm text-stone-700">₹{parseInt(item.price.replace(/\D/g,'')) * item.quantity}</p>
+                        <p className="font-bold text-sm text-stone-700">{formatINR(parsePrice(item.price) * item.quantity)}</p>
                       </div>
                     ))
                   )}
@@ -289,11 +358,11 @@ export default function CheckoutPage() {
                 <div className="space-y-3 pt-6 border-t border-stone-100">
                   <div className="flex justify-between text-sm text-stone-600">
                     <span>Subtotal</span>
-                    <span>₹{total.toLocaleString()}</span>
+                    <span>{formatINR(total)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-stone-600">
                      <span>Concierge Fee</span>
-                     <span className="text-stone-400 line-through">₹500</span>
+                     <span className="text-stone-400 line-through">{formatINR(500)}</span>
                   </div>
                    <div className="flex justify-between text-sm text-green-700 font-bold bg-green-50 p-2 rounded">
                      <span>Shipping</span>
@@ -302,35 +371,45 @@ export default function CheckoutPage() {
                   {isAnnual && (
                     <div className="flex justify-between text-sm text-amber-700 font-bold bg-amber-50 p-2 rounded">
                       <span>Automated Renewal</span>
-                      <span>Active (₹0 Today)</span>
+                      <span>Active ({formatINR(0)} today)</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between items-end pt-4 border-t border-stone-200 mt-4">
                     <span className="font-serif text-xl">Total</span>
                     <div className="text-right">
-                       <span className="block text-2xl font-bold text-stone-900">₹{total.toLocaleString()}</span>
+                       <span className="block text-2xl font-bold text-stone-900">{formatINR(total)}</span>
                        <span className="text-[10px] text-stone-400 uppercase tracking-wide">Includes all taxes</span>
                     </div>
                   </div>
                 </div>
 
+                {submitError && (
+                  <p className="mt-6 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {submitError}
+                  </p>
+                )}
+
                 {/* Checkout Button */}
-                <button className="w-full mt-8 bg-stone-900 text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-stone-800 transition-all flex items-center justify-center gap-3 group">
-                  Proceed to Pay
+                <button
+                  type="submit"
+                  disabled={isSubmitting || items.length === 0}
+                  className="w-full mt-8 bg-stone-900 text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-stone-800 transition-all flex items-center justify-center gap-3 group disabled:cursor-not-allowed disabled:bg-stone-300"
+                >
+                  {isSubmitting ? "Placing Order..." : "Place Demo Order"}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
                 
                 <p className="text-center text-[10px] text-stone-400 mt-4 flex items-center justify-center gap-2">
                   <ShieldCheck className="w-3 h-3" />
-                  Payments processed securely via Stripe/Razorpay
+                  Demo checkout saves an order without charging a payment method
                 </p>
 
               </div>
               
               {/* Trust Badge */}
               <div className="bg-[#F3EDE7] p-6 rounded-lg border border-stone-200 text-center">
-                 <p className="font-serif text-lg italic text-stone-600 mb-2">"Tyohar Promise"</p>
+                 <p className="font-serif text-lg italic text-stone-600 mb-2">Tyohar Promise</p>
                  <p className="text-xs text-stone-500 leading-relaxed">
                    We verify every address before shipping. If the recipient is unavailable, we coordinate a new time slot at no extra cost.
                  </p>
@@ -339,7 +418,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-        </div>
+        </form>
       </main>
     </div>
   );

@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { ShoppingBag, X, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation"; 
+import { formatINR } from "@/lib/orders";
+import Image from "next/image";
 
 export default function GiftBox() {
   const { items, isOpen, setIsOpen, updateQuantity, removeFromCart, total } = useCart();
@@ -95,7 +97,7 @@ export default function GiftBox() {
                       className="flex gap-4 bg-white p-4 rounded-lg shadow-sm border border-stone-200"
                     >
                       <div className="w-20 h-20 bg-stone-100 rounded-md overflow-hidden flex-shrink-0">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <Image src={item.image} alt={item.name} width={80} height={80} className="w-full h-full object-cover" />
                       </div>
                       
                       <div className="flex-1 flex flex-col justify-between">
@@ -139,7 +141,7 @@ export default function GiftBox() {
                 <div className="p-6 bg-white border-t border-stone-200 space-y-4">
                   <div className="flex items-center justify-between text-stone-600 text-sm">
                     <span>Subtotal</span>
-                    <span className="font-bold text-stone-900">₹{total.toLocaleString()}</span>
+                    <span className="font-bold text-stone-900">{formatINR(total)}</span>
                   </div>
                   <div className="flex items-center justify-between text-stone-600 text-sm">
                     <span>Shipping</span>
@@ -147,7 +149,7 @@ export default function GiftBox() {
                   </div>
                   <div className="border-t border-stone-100 pt-4 flex items-center justify-between">
                     <span className="font-serif text-xl">Total</span>
-                    <span className="font-serif text-2xl text-amber-700">₹{total.toLocaleString()}</span>
+                    <span className="font-serif text-2xl text-amber-700">{formatINR(total)}</span>
                   </div>
                   
                   {/* 4. Updated Button with handleCheckout */}

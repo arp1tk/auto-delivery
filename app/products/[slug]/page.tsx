@@ -1,6 +1,7 @@
 import { PRODUCTS } from "@/app/data/products";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import ProductPurchasePanel from "@/components/ProductPurchasePanel";
 
 export default async function ProductPage({
   params,
@@ -46,9 +47,7 @@ export default async function ProductPage({
             {product.desc}
           </p>
 
-          <button className="mt-6 px-8 py-4 bg-[#7D4047] text-white rounded-md hover:bg-[#6b353c] transition-colors">
-            Add to Cart
-          </button>
+          <ProductPurchasePanel product={product} />
 
         </div>
       </div>
