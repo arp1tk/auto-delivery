@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { NextResponse } from "next/server";
 
@@ -14,7 +15,7 @@ type SchedulePayload = {
   gift?: unknown;
 };
 
-const storageDir = path.join(process.cwd(), "var");
+const storageDir = path.join(os.tmpdir(), "tyohar-demo");
 const storagePath = path.join(storageDir, "annual-gifting-schedules.json");
 
 function requireText(payload: SchedulePayload, key: keyof SchedulePayload) {
