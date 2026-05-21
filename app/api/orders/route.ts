@@ -1,48 +1,9 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getCartTotal, type OrderDraft, type OrderRecord } from "@/lib/orders";
+import { findOrderRecord, PERSISTENCE_STORAGE_LABELS, saveOrderRecord } from "@/lib/persistence";
 
-const ordersDirectory = path.join(os.tmpdir(), "tyohar-demo");
-const ordersFile = path.join(ordersDirectory, "orders.json");
-
-function isNodeFileError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}
-
-async function readOrders() {
-  try {
-    const rawOrders = await readFile(ordersFile, "utf8");
-    const parsedOrders = JSON.parse(rawOrders);
-
-    if (!Array.isArray(parsedOrders)) {
-      throw new Error(`Order store at ${ordersFile} must contain a JSON array.`);
-    }
-
-    return parsedOrders as OrderRecord[];
-  } catch (error) {
-    if (isNodeFileError(error) && error.code === "ENOENT") {
-      await mkdir(ordersDirectory, { recursive: true });
-      await writeFile(ordersFile, "[]\n", "utf8");
-      return [];
-    }
-
-    console.error("Failed to read order store.", { ordersFile, error });
-    throw error;
-  }
-}
-
-async function writeOrders(orders: OrderRecord[]) {
-  try {
-    await mkdir(ordersDirectory, { recursive: true });
-    await writeFile(ordersFile, `${JSON.stringify(orders, null, 2)}\n`, "utf8");
-  } catch (error) {
-    console.error("Failed to write order store.", { ordersFile, orderCount: orders.length, error });
-    throw error;
-  }
-}
+export const runtime = "nodejs";
 
 function assertOrderDraft(value: unknown): asserts value is OrderDraft {
   if (!value || typeof value !== "object") {
@@ -135,8 +96,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const orders = await readOrders();
-    const order = orders.find((candidate) => candidate.id === orderId);
+    const order = await findOrderRecord(orderId);
 
     if (!order) {
       return NextResponse.json({ error: `Order ${orderId} was not found.` }, { status: 404 });
@@ -144,31 +104,50 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ order });
   } catch (error) {
-    console.error("Failed to load order.", { orderId, error });
+    console.error("Failed to load order.", {
+      orderId,
+      storage: PERSISTENCE_STORAGE_LABELS.orders,
+      error,
+    });
     return NextResponse.json({ error: "Failed to load order. Check server logs for context." }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  let payload: unknown;
+
   try {
-    const payload: unknown = await request.json();
+    payload = await request.json();
+  } catch (error) {
+    console.error("Failed to parse order payload.", { error });
+    return NextResponse.json({ error: "Order body must be valid JSON." }, { status: 400 });
+  }
+
+  try {
     assertOrderDraft(payload);
+  } catch (error) {
+    console.error("Invalid order payload.", { payload, error });
+    const message = error instanceof Error ? error.message : "Unknown order validation failure.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
-    const order: OrderRecord = {
-      ...payload,
-      createdAt: new Date().toISOString(),
-      id: `TYO-${randomUUID().slice(0, 8).toUpperCase()}`,
-      paymentMode: "demo",
-      status: "confirmed",
-    };
+  const order: OrderRecord = {
+    ...payload,
+    createdAt: new Date().toISOString(),
+    id: `TYO-${randomUUID().slice(0, 8).toUpperCase()}`,
+    paymentMode: "demo",
+    status: "confirmed",
+  };
 
-    const orders = await readOrders();
-    await writeOrders([order, ...orders]);
-
+  try {
+    await saveOrderRecord(order);
     return NextResponse.json({ orderId: order.id }, { status: 201 });
   } catch (error) {
-    console.error("Failed to create order.", { error });
-    const message = error instanceof Error ? error.message : "Unknown order creation failure.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    console.error("Failed to create order.", {
+      storage: PERSISTENCE_STORAGE_LABELS.orders,
+      orderId: order.id,
+      error,
+    });
+    return NextResponse.json({ error: "Failed to save order. Check server logs for context." }, { status: 500 });
   }
 }
