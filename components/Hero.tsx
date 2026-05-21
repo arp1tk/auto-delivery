@@ -42,9 +42,9 @@ export default function Hero() {
                 </div>
               ))}
             </div>
-            <Link href="/products">
+            <Link href="#waitlist">
               <button className="group bg-stone-900 text-white px-8 py-4 uppercase text-xs font-bold tracking-widest hover:bg-stone-800 transition-all flex items-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-1">
-                Start Gifting
+                Join Waitlist
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </Link>
