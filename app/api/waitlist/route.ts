@@ -1,95 +1,184 @@
-import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { randomUUID } from "crypto";
+import { appendFile, mkdir } from "fs/promises";
+import os from "os";
+import path from "path";
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+
+const WAITLIST_DIR = path.join(os.tmpdir(), "tyohar-demo");
+const WAITLIST_FILE = path.join(WAITLIST_DIR, "waitlist-submissions.jsonl");
+const WAITLIST_STORAGE_LABEL = path.posix.join(
+  "runtime-temp",
+  "waitlist-submissions.jsonl",
+);
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_COUNTRY_CODES = new Set([
+  "+1",
+  "+44",
+  "+60",
+  "+61",
+  "+65",
+  "+91",
+  "+965",
+  "+966",
+  "+968",
+  "+971",
+  "+973",
+  "+974",
+]);
+
+type WaitlistPayload = {
+  email?: unknown;
+  phone?: unknown;
+  countryCode?: unknown;
+  source?: unknown;
+};
+
+type ValidWaitlistPayload = {
+  email: string;
+  phone: string | null;
+  countryCode: string | null;
+  source: string;
+};
+
+type WaitlistRecord = ValidWaitlistPayload & {
+  id: string;
+  createdAt: string;
+  storage: string;
+  userAgent: string | null;
+};
+
+function asTrimmedString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function validateWaitlistPayload(payload: WaitlistPayload):
+  | { ok: true; value: ValidWaitlistPayload }
+  | { ok: false; error: string } {
+  const email = asTrimmedString(payload.email).toLowerCase();
+  const phoneInput = asTrimmedString(payload.phone);
+  const countryCode = asTrimmedString(payload.countryCode);
+  const source = asTrimmedString(payload.source);
+
+  if (!email) {
+    return { ok: false, error: "Enter an email address." };
+  }
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return { ok: false, error: "Enter a valid email address." };
+  }
+
+  if (!source || source.length > 80) {
+    return { ok: false, error: "Submission source is required." };
+  }
+
+  if (!phoneInput) {
+    return { ok: true, value: { email, phone: null, countryCode: null, source } };
+  }
+
+  if (!ALLOWED_COUNTRY_CODES.has(countryCode)) {
+    return { ok: false, error: "Choose a supported country code." };
+  }
+
+  const phone = phoneInput.replace(/\D/g, "");
+
+  if (phone.length < 7 || phone.length > 15) {
+    return { ok: false, error: "Enter a valid mobile number." };
+  }
+
+  return { ok: true, value: { email, phone, countryCode, source } };
+}
+
+async function parsePayload(req: Request): Promise<
+  | { ok: true; value: WaitlistPayload }
+  | { ok: false; error: string }
+> {
+  try {
+    return { ok: true, value: (await req.json()) as WaitlistPayload };
+  } catch (error) {
+    logWaitlistFailure("parse-request-json", null, error);
+    return {
+      ok: false,
+      error: "Submission body must be valid JSON.",
+    };
+  }
+}
+
+async function saveWaitlistRecord(record: WaitlistRecord) {
+  await mkdir(WAITLIST_DIR, { recursive: true });
+  await appendFile(WAITLIST_FILE, `${JSON.stringify(record)}\n`, "utf8");
+}
+
+function logWaitlistFailure(
+  step: string,
+  input: WaitlistPayload | null,
+  error: unknown,
+  context: Record<string, unknown> = {},
+) {
+  const normalizedError =
+    error instanceof Error
+      ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        }
+      : { message: String(error) };
+
+  console.error("waitlist submission failed", {
+    step,
+    input,
+    storagePath: WAITLIST_FILE,
+    ...context,
+    error: normalizedError,
+  });
+}
 
 export async function POST(req: Request) {
-  try {
-    const { email, phone, countryCode, source } = await req.json();
+  const parsed = await parsePayload(req);
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
-    }
-
-    // 1. Configure Transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: true, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    // 2. Format Phone Number
-    const fullPhone = phone ? `${countryCode} ${phone}` : 'Not provided';
-
-    // 3. Email Template for User (Aesthetic & Professional)
-    const userEmailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <body style="margin: 0; padding: 0; background-color: #f5f5f4; font-family: 'Times New Roman', serif;">
-        <div style="max-w-xl mx-auto bg-white p-8 md:p-12 border-top: 4px solid #b45309; margin-top: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #1c1917; letter-spacing: 0.1em; text-transform: uppercase; font-size: 24px; margin: 0;">Tyohar</h1>
-            <p style="color: #b45309; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;">Premium Gifting</p>
-          </div>
-
-          <p style="color: #44403c; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-            Hello,
-          </p>
-          <p style="color: #44403c; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-            Thank you for reserving your place on our waitlist. You have taken the first step towards a more thoughtful way of gifting.
-          </p>
-          <p style="color: #44403c; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-            We are curating a collection that bridges distance with elegance. As an early member, you will receive priority access and an exclusive launch privilege when we go live.
-          </p>
-          
-          <div style="background-color: #fafaf9; padding: 20px; text-align: center; margin: 30px 0;">
-            <p style="color: #1c1917; font-weight: bold; margin: 0; letter-spacing: 0.05em;">Your Status: Confirmed</p>
-          </div>
-
-          <div style="border-top: 1px solid #e7e5e4; padding-top: 20px; text-align: center; margin-top: 40px;">
-            <p style="color: #78716c; font-size: 12px; font-family: sans-serif;">
-              Real Emotions. Delivered.<br>
-              &copy; 2025 Tyohar. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    // 4. Send Email to Admin (Internal Notification)
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: process.env.ADMIN_EMAIL,
-      subject: `New Waitlist Signup: ${email}`,
-      text: `New entry from ${source} section.\nEmail: ${email}\nPhone: ${fullPhone}`,
-      html: `
-        <div style="font-family: sans-serif;">
-          <h2>New Lead Captured</h2>
-          <p><strong>Source:</strong> ${source}</p>
-          <table style="border-collapse: collapse; width: 100%;">
-            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Email</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${email}</td></tr>
-            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Phone</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${fullPhone}</td></tr>
-            <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Date</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${new Date().toLocaleString()}</td></tr>
-          </table>
-        </div>
-      `,
-    });
-
-    // 5. Send Confirmation to User
-    await transporter.sendMail({
-      from: `"Tyohar Concierge" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: "Welcome to the Inner Circle",
-      html: userEmailHtml,
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Email error:', error);
-    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+  if (!parsed.ok) {
+    return NextResponse.json(
+      { error: parsed.error },
+      { status: 400 },
+    );
   }
+
+  const payload = parsed.value;
+  const validated = validateWaitlistPayload(payload);
+
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+
+  const record: WaitlistRecord = {
+    id: randomUUID(),
+    createdAt: new Date().toISOString(),
+    storage: WAITLIST_STORAGE_LABEL,
+    userAgent: req.headers.get("user-agent"),
+    ...validated.value,
+  };
+
+  try {
+    await saveWaitlistRecord(record);
+  } catch (error) {
+    logWaitlistFailure("persist-waitlist-record", payload, error, {
+      recordId: record.id,
+      storageLabel: WAITLIST_STORAGE_LABEL,
+    });
+
+    return NextResponse.json(
+      { error: "Could not save waitlist submission." },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      id: record.id,
+      message: "Waitlist spot saved.",
+      storage: WAITLIST_STORAGE_LABEL,
+    },
+    { status: 201 },
+  );
 }
