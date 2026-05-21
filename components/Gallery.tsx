@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Section from "./layout/Section";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, ChevronRight, X, Plus, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 interface SubItem {

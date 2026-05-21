@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Section from "./layout/Section";
-import { Loader2 } from "lucide-react";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -78,7 +77,7 @@ export default function Footer() {
               )}
             </div>
             
-            <p className="text-[10px] uppercase tracking-widest mt-4 opacity-50">© 2025 Devix</p>
+            <p className="text-[10px] uppercase tracking-widest mt-4 opacity-50">Copyright 2026 Tyohar</p>
           </div>
 
         </div>

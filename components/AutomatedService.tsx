@@ -19,7 +19,7 @@ export default function AutomatedService() {
             </h2>
 
             <p className="text-stone-600 mb-12 text-lg leading-relaxed">
-              Our service runs automatically every year. Even if it slips your mind, we'll execute 
+              Our service runs automatically every year. Even if it slips your mind, we&apos;ll execute
               your scheduled deliveries and send confirmation emails beforehand, so you never miss 
               an important occasion.
             </p>
@@ -56,7 +56,7 @@ export default function AutomatedService() {
                 <div>
                   <h3 className="font-serif text-xl mb-3 text-stone-900">Never Miss a Moment</h3>
                   <p className="text-stone-600 text-sm leading-relaxed">
-                    Life gets busy, but your relationships don't have to suffer. We ensure your gifts are delivered on time, every time.
+                    Life gets busy, but your relationships don&apos;t have to suffer. We ensure your gifts are delivered on time, every time.
                   </p>
                 </div>
               </div>
@@ -73,8 +73,8 @@ export default function AutomatedService() {
                     <Mail className="w-5 h-5 text-amber-700" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-stone-900">Auto-Delivery</p>
-                    <p className="text-xs text-stone-500">noreply@auto-delivery.com</p>
+                    <p className="font-semibold text-sm text-stone-900">Tyohar</p>
+                    <p className="text-xs text-stone-500">noreply@tyohar.gifts</p>
                   </div>
                 </div>
               </div>
@@ -88,14 +88,14 @@ export default function AutomatedService() {
                 
                 <div className="space-y-3 text-sm text-stone-600">
                   <p>Hi there,</p>
-                  <p>Your annual Diwali gift delivery is scheduled for <span className="font-semibold text-stone-900">November 1st, 2024</span>.</p>
+                  <p>Your annual Diwali gift delivery is scheduled for <span className="font-semibold text-stone-900">November 8, 2026</span>.</p>
                   
                   <div className="bg-amber-50 border-l-4 border-amber-700 p-3 my-4">
                     <p className="text-xs font-semibold text-amber-900 mb-1">Delivery Details:</p>
-                    <p className="text-xs text-stone-700">Premium Diwali Hamper → Mumbai, Maharashtra</p>
+                    <p className="text-xs text-stone-700">Premium Diwali Hamper to Mumbai, Maharashtra</p>
                   </div>
                   
-                  <p className="text-xs text-stone-500 italic">No action needed. We'll handle everything automatically.</p>
+                  <p className="text-xs text-stone-500 italic">No action needed. We&apos;ll handle everything automatically.</p>
                 </div>
               </div>
             </div>
