@@ -29,7 +29,7 @@ for (const file of migrationFiles) {
     .filter(Boolean);
 
   for (const statement of statements) {
-    await sql.query(statement);
+    await sql(statement);
   }
 
   console.log(`Applied ${file}`);
