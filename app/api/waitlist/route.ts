@@ -1,17 +1,13 @@
-import { randomUUID } from "crypto";
-import { appendFile, mkdir } from "fs/promises";
-import os from "os";
-import path from "path";
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import {
+  PERSISTENCE_STORAGE_LABELS,
+  saveWaitlistRecord,
+  type WaitlistRecord,
+} from "@/lib/persistence";
 
 export const runtime = "nodejs";
 
-const WAITLIST_DIR = path.join(os.tmpdir(), "tyohar-demo");
-const WAITLIST_FILE = path.join(WAITLIST_DIR, "waitlist-submissions.jsonl");
-const WAITLIST_STORAGE_LABEL = path.posix.join(
-  "runtime-temp",
-  "waitlist-submissions.jsonl",
-);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALLOWED_COUNTRY_CODES = new Set([
   "+1",
@@ -40,13 +36,6 @@ type ValidWaitlistPayload = {
   phone: string | null;
   countryCode: string | null;
   source: string;
-};
-
-type WaitlistRecord = ValidWaitlistPayload & {
-  id: string;
-  createdAt: string;
-  storage: string;
-  userAgent: string | null;
 };
 
 function asTrimmedString(value: unknown) {
@@ -105,11 +94,6 @@ async function parsePayload(req: Request): Promise<
   }
 }
 
-async function saveWaitlistRecord(record: WaitlistRecord) {
-  await mkdir(WAITLIST_DIR, { recursive: true });
-  await appendFile(WAITLIST_FILE, `${JSON.stringify(record)}\n`, "utf8");
-}
-
 function logWaitlistFailure(
   step: string,
   input: WaitlistPayload | null,
@@ -128,7 +112,7 @@ function logWaitlistFailure(
   console.error("waitlist submission failed", {
     step,
     input,
-    storagePath: WAITLIST_FILE,
+    storage: PERSISTENCE_STORAGE_LABELS.waitlist,
     ...context,
     error: normalizedError,
   });
@@ -154,7 +138,6 @@ export async function POST(req: Request) {
   const record: WaitlistRecord = {
     id: randomUUID(),
     createdAt: new Date().toISOString(),
-    storage: WAITLIST_STORAGE_LABEL,
     userAgent: req.headers.get("user-agent"),
     ...validated.value,
   };
@@ -164,7 +147,7 @@ export async function POST(req: Request) {
   } catch (error) {
     logWaitlistFailure("persist-waitlist-record", payload, error, {
       recordId: record.id,
-      storageLabel: WAITLIST_STORAGE_LABEL,
+      storageLabel: PERSISTENCE_STORAGE_LABELS.waitlist,
     });
 
     return NextResponse.json(
@@ -177,7 +160,7 @@ export async function POST(req: Request) {
     {
       id: record.id,
       message: "Waitlist spot saved.",
-      storage: WAITLIST_STORAGE_LABEL,
+      storage: PERSISTENCE_STORAGE_LABELS.waitlist,
     },
     { status: 201 },
   );

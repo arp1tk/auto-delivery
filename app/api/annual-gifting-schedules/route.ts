@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import { NextResponse } from "next/server";
+import {
+  PERSISTENCE_STORAGE_LABELS,
+  saveAnnualGiftingSchedule,
+  type AnnualGiftingSchedule,
+} from "@/lib/persistence";
 
 export const runtime = "nodejs";
 
@@ -15,9 +17,6 @@ type SchedulePayload = {
   gift?: unknown;
 };
 
-const storageDir = path.join(os.tmpdir(), "tyohar-demo");
-const storagePath = path.join(storageDir, "annual-gifting-schedules.json");
-
 function requireText(payload: SchedulePayload, key: keyof SchedulePayload) {
   const value = payload[key];
 
@@ -28,35 +27,20 @@ function requireText(payload: SchedulePayload, key: keyof SchedulePayload) {
   return value.trim();
 }
 
-async function readSchedules() {
-  await mkdir(storageDir, { recursive: true });
-
-  try {
-    const raw = await readFile(storagePath, "utf8");
-    const parsed = JSON.parse(raw) as unknown;
-
-    if (!Array.isArray(parsed)) {
-      throw new Error(`${storagePath} must contain a JSON array.`);
-    }
-
-    return parsed;
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      await writeFile(storagePath, "[]\n", "utf8");
-      return [];
-    }
-
-    throw error;
-  }
-}
-
 export async function POST(req: Request) {
-  let payload: SchedulePayload | undefined;
+  let payload: SchedulePayload;
 
   try {
     payload = (await req.json()) as SchedulePayload;
+  } catch (error) {
+    console.error("Annual gifting schedule JSON parse failed", { error });
+    return NextResponse.json({ error: "Schedule body must be valid JSON." }, { status: 400 });
+  }
 
-    const schedule = {
+  let schedule: AnnualGiftingSchedule;
+
+  try {
+    schedule = {
       id: `annual_${randomUUID()}`,
       sender: requireText(payload, "sender"),
       recipient: requireText(payload, "recipient"),
@@ -68,21 +52,30 @@ export async function POST(req: Request) {
       proofStatus: "photo_confirmation_pending",
       createdAt: new Date().toISOString(),
     };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown annual gifting validation failure.";
+    console.error("Annual gifting schedule validation failed", {
+      payload,
+      message,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
 
-    const schedules = await readSchedules();
-    schedules.push(schedule);
-    await writeFile(storagePath, `${JSON.stringify(schedules, null, 2)}\n`, "utf8");
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  try {
+    await saveAnnualGiftingSchedule(schedule);
 
     return NextResponse.json({ schedule }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown annual gifting schedule failure.";
     console.error("Annual gifting schedule save failed", {
       payload,
-      storagePath,
+      storage: PERSISTENCE_STORAGE_LABELS.annualSchedules,
       message,
       stack: error instanceof Error ? error.stack : undefined,
     });
 
-    return NextResponse.json({ error: "Could not save annual gifting schedule.", detail: message }, { status: 500 });
+    return NextResponse.json({ error: "Could not save annual gifting schedule. Check server logs for context." }, { status: 500 });
   }
 }
